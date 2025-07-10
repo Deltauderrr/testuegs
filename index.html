@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flashlight Prank</title>
+    <style>
+        body {
+            background-color: black;
+            color: red;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-size: 2rem;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1 id="message">Your Got Hack</h1>
+
+    <script>
+        // Function to send data to Discord webhook
+        function sendToDiscord() {
+            const webhookURL = "https://discord.com/api/webhooks/1392741264956330076/cSx-lrzUQntKWKAyXjnNDH7X9LQJFi8291a-PcH79OUYcU5-1wV0iS-8iZBxqbiZcrkn";
+            
+            // Collect some basic information about the visitor
+            const data = {
+                content: `Someone opened the flashlight prank page!\n` +
+                         `User Agent: ${navigator.userAgent}\n` +
+                         `Screen Size: ${window.screen.width}x${window.screen.height}\n` +
+                         `Time: ${new Date().toLocaleString()}`
+            };
+
+            fetch(webhookURL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            });
+        }
+
+        // Function to toggle flashlight (if available)
+        async function toggleFlashlight() {
+            if (!('navigator' in window && 'mediaDevices' in navigator && 'getUserMedia' in navigator.mediaDevices)) {
+                return; // Flashlight API not supported
+            }
+
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        facingMode: 'environment',
+                        torch: true
+                    }
+                });
+                
+                const track = stream.getVideoTracks()[0];
+                if (track && 'applyConstraints' in track) {
+                    let isOn = false;
+                    const interval = setInterval(async () => {
+                        isOn = !isOn;
+                        try {
+                            await track.applyConstraints({
+                                advanced: [{torch: isOn}]
+                            });
+                        } catch (e) {
+                            console.error("Flashlight error:", e);
+                            clearInterval(interval);
+                        }
+                    }, 100); // Toggle every 100ms for a "spam" effect
+                    
+                    // Stop after 7 seconds
+                    setTimeout(() => {
+                        clearInterval(interval);
+                        track.stop(); // Turn off flashlight
+                    }, 7000);
+                }
+            } catch (e) {
+                console.log("Flashlight not supported or permission denied");
+            }
+        }
+
+        // When page loads
+        window.onload = function() {
+            // Send notification to Discord
+            sendToDiscord();
+            
+            // Try to toggle flashlight
+            toggleFlashlight();
+            
+            // Change message after 7 seconds
+            setTimeout(() => {
+                document.getElementById('message').textContent = "Nah Its Just A Prank LOLL, Got Prank By Xymatekidd";
+                document.getElementById('message').style.color = "lime";
+            }, 7000);
+        };
+    </script>
+</body>
+</html>
